@@ -13,8 +13,9 @@ This add-on is one small app module (`addon/appModules/wordcraft.py`). For WordC
 - makes Ctrl+Alt+arrows move between table cells in focus mode, as in Word;
 - announces a list once, with its number of items, on entering it, and again on leaving it, as for web pages. Without the add-on NVDA says "list" on every line of it: it takes a UI Automation list that isn't read-only for a list box, and corrects that only for applications it knows;
 - announces the cell Tab and Shift+Tab move to in a table (its row and column, then its text), as NVDA does in Word.
+- announces the page and the section when they change, with NVDA's Report pages on, as NVDA does in Word ("page 2, section 2"). NVDA gets them from Word through an extension of Word's own; the add-on counts the page with UI Automation's page unit and reads the section's number from the unnamed pane WordCraft puts around each section.
 
-Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists and Tab in tables.
+Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists, Tab in tables, and pages and sections.
 
 ## What to expect
 
@@ -31,6 +32,10 @@ With WordCraft's `main` as of October 2026, the document is described node by no
 1. Download `wordcraft-<version>.nvda-addon` from [Releases](https://github.com/squalorso/wordcraft-nvda/releases).
 2. Open it: NVDA asks whether to install it.
 3. Restart NVDA.
+
+### Updates
+
+The add-on isn't in the Add-on Store, so it checks its own releases here: once a day, a little after NVDA starts, and from NVDA's Tools menu, "Check for WordCraft add-on updates...". When a newer version is out it asks; on yes it downloads the package (checking its size and SHA-256 against GitHub's) and opens it, so NVDA shows its usual install dialog. On no, the daily check doesn't ask again for that version; the menu still offers it.
 
 If you have a `wordcraft.py` app module of your own in NVDA's developer scratchpad (`%APPDATA%\nvda\scratchpad\appModules`), remove it first, or the two will clash.
 

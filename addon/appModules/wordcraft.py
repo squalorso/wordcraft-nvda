@@ -8,10 +8,16 @@
 # NVDA+Space as in Word, and Ctrl+Alt+arrows table navigation in focus mode. Everything else
 # (headings, links, lists, tables, formatting, errors) comes from what WordCraft exposes.
 #
-# Two more things NVDA does only for applications it knows, done here as NVDA does them:
+# More things NVDA does only for applications it knows, done here as NVDA does them:
 # - a list in the text is announced on entering and leaving it, not on every line: NVDA takes a
 #   UI Automation list that isn't read-only for a list box, as it does for Word and web pages;
-# - Tab and Shift+Tab in a table announce the cell they move to, as in Word.
+# - Tab and Shift+Tab in a table announce the cell they move to, as in Word;
+# - the page and the section are announced when they change (with "Report pages" on), as in
+#   Word. NVDA gets them from Word through an extension of Word's own; here the page is counted
+#   with UI Automation's page unit, and the section is the numbered pane WordCraft puts around
+#   each section's text.
+
+from comtypes import COMError
 
 import appModuleHandler
 import controlTypes
@@ -22,9 +28,23 @@ from NVDAObjects.UIA import UIA, UIATextInfo
 from scriptHandler import script
 from UIAHandler.browseMode import UIABrowseModeDocument, UIADocumentWithTableNavigation
 
+# More pages than any document has: moving back by this many reaches the first page.
+_MANY_PAGES = 1000000
+# How far up from a position the section's pane can be (table cell, list item, link…).
+_MAX_DEPTH = 20
+
+
+def _isSection(element):
+	"""Whether a UI Automation element is one of the document's sections: a pane with no name
+	and a place among the sections."""
+	if element.CurrentControlType != UIAHandler.UIA_PaneControlTypeId or element.CurrentName:
+		return False
+	number = element.GetCurrentPropertyValue(UIAHandler.UIA_PositionInSetPropertyId)
+	return isinstance(number, int) and number > 0
+
 
 class WordCraftTextInfo(UIATextInfo):
-	"""The document's text, with its lists read as lists in a document."""
+	"""The document's text, with its lists read as lists in a document, and its page and section."""
 
 	def _getControlFieldForUIAObject(self, obj, isEmbedded=False, startOfNode=False, endOfNode=False):
 		field = super()._getControlFieldForUIAObject(
@@ -33,6 +53,9 @@ class WordCraftTextInfo(UIATextInfo):
 			startOfNode=startOfNode,
 			endOfNode=endOfNode,
 		)
+		if field.get("role") == controlTypes.Role.PANE and _isSection(obj.UIAElement):
+			# A section, which the format fields announce by number.
+			field["role"] = controlTypes.Role.SECTION
 		if field.get("role") == controlTypes.Role.LIST:
 			# Read-only: a list of the text, which NVDA announces on entering and leaving, rather than
 			# a list box, announced on every line (as NVDA does for Word and web pages).
@@ -46,6 +69,51 @@ class WordCraftTextInfo(UIATextInfo):
 			if isinstance(count, int) and count > 0:
 				field["_childcontrolcount"] = count
 		return field
+
+	def _getFormatFieldAtRange(self, textRange, formatConfig, ignoreMixedValues=False):
+		formatField = super()._getFormatFieldAtRange(
+			textRange,
+			formatConfig,
+			ignoreMixedValues=ignoreMixedValues,
+		)
+		if formatField and formatConfig["reportPage"]:
+			try:
+				page, section = self._pageAndSection(textRange)
+			except COMError:
+				page = section = None
+			if page:
+				formatField.field["page-number"] = page
+			if section:
+				formatField.field["section-number"] = section
+		return formatField
+
+	def _pageAndSection(self, textRange):
+		"""The page and the section where the range starts, counted from 1."""
+		at = textRange.Clone()
+		at.MoveEndpointByRange(
+			UIAHandler.TextPatternRangeEndpoint_End,
+			at,
+			UIAHandler.TextPatternRangeEndpoint_Start,
+		)
+		section = None
+		element = at.GetEnclosingElement()
+		root = self.obj.UIAElement
+		walker = UIAHandler.handler.clientObject.RawViewWalker
+		for _ in range(_MAX_DEPTH):
+			if not element or UIAHandler.handler.clientObject.compareElements(element, root):
+				break
+			if _isSection(element):
+				section = element.GetCurrentPropertyValue(UIAHandler.UIA_PositionInSetPropertyId)
+				break
+			element = walker.GetParentElement(element)
+		# From the start of the page, back to the start of the first: one move per page before.
+		at.ExpandToEnclosingUnit(UIAHandler.TextUnit_Page)
+		moved = at.MoveEndpointByUnit(
+			UIAHandler.TextPatternRangeEndpoint_Start,
+			UIAHandler.TextUnit_Page,
+			-_MANY_PAGES,
+		)
+		return 1 - moved, section
 
 
 def _inTableCell(info):

@@ -13,6 +13,7 @@ This add-on is one small app module (`addon/appModules/wordcraft.py`). For WordC
 - makes Ctrl+Alt+arrows move between table cells in focus mode, as in Word;
 - announces a list once, with its number of items, on entering it, and again on leaving it, as for web pages. Without the add-on NVDA says "list" on every line of it: it takes a UI Automation list that isn't read-only for a list box, and corrects that only for applications it knows;
 - announces the cell Tab and Shift+Tab move to in a table (its row and column, then its text), as NVDA does in Word.
+- reads a picture as its alt text ("graphic, A red square"), as NVDA does in Word. In the text a picture is the object character (U+FFFC), which NVDA would otherwise read as the picture's content.
 - announces the page and the section when they change, with NVDA's Report pages on, as NVDA does in Word ("page 2, section 2"). NVDA gets them from Word through an extension of Word's own; the add-on counts the page with UI Automation's page unit and reads the section's number from the unnamed pane WordCraft puts around each section.
 
 Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists, Tab in tables, and pages and sections.
@@ -21,7 +22,7 @@ Everything NVDA reads (headings, links, lists, tables, formatting, spelling erro
 
 It works best with the WordCraft build of [storytold/wordcraft#4951](https://github.com/storytold/wordcraft/pull/4951), where the document is one text on Windows:
 - browse mode reads the whole document;
-- H and 1–6 find headings by their style, K links, L lists, T tables.
+- H and 1–6 find headings by their style, K links, L lists, T tables, G pictures.
 
 With that build, on a test document, 119 of 150 scripted NVDA 2026.2 steps said the same as Word. Most of the others are lists: Word hides them from NVDA, and this add-on announces them as web pages do. With H, browse mode went through all 30 headings of a 48-page document.
 

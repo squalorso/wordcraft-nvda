@@ -15,7 +15,8 @@
 # - the page and the section are announced when they change (with "Report pages" on), as in
 #   Word. NVDA gets them from Word through an extension of Word's own; here the page is counted
 #   with UI Automation's page unit, and the section is the numbered pane WordCraft puts around
-#   each section's text.
+#   each section's text;
+# - a picture reads as its alt text ("graphic, A red square"), as NVDA reads Word's.
 
 from comtypes import COMError
 
@@ -32,6 +33,8 @@ from UIAHandler.browseMode import UIABrowseModeDocument, UIADocumentWithTableNav
 _MANY_PAGES = 1000000
 # How far up from a position the section's pane can be (table cell, list item, link…).
 _MAX_DEPTH = 20
+# Where a picture is in the text (U+FFFC, as in Word's).
+_OBJECT_CHARACTER = "￼"
 
 
 def _isSection(element):
@@ -56,6 +59,10 @@ class WordCraftTextInfo(UIATextInfo):
 		if field.get("role") == controlTypes.Role.PANE and _isSection(obj.UIAElement):
 			# A section, which the format fields announce by number.
 			field["role"] = controlTypes.Role.SECTION
+		if field.get("role") == controlTypes.Role.GRAPHIC:
+			# A picture reads as its alt text, as NVDA does for Word: in the text it is only the
+			# object character, which NVDA would read as the picture's content.
+			field["content"] = obj.name or ""
 		if field.get("role") == controlTypes.Role.LIST:
 			# Read-only: a list of the text, which NVDA announces on entering and leaving, rather than
 			# a list box, announced on every line (as NVDA does for Word and web pages).
@@ -69,6 +76,11 @@ class WordCraftTextInfo(UIATextInfo):
 			if isinstance(count, int) and count > 0:
 				field["_childcontrolcount"] = count
 		return field
+
+	def _getTextFromUIARange(self, textRange):
+		text = super()._getTextFromUIARange(textRange)
+		# A picture's object character: the picture's field reads its alt text (above).
+		return text.replace(_OBJECT_CHARACTER, "") if text else text
 
 	def _get_NVDAObjectAtStart(self):
 		# A section's pane is structure around the text, not an object: the document stands for it.

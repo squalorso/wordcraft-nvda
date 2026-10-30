@@ -10,9 +10,11 @@ NVDA gives browse mode to a UI Automation document only in applications it knows
 
 This add-on is one small app module (`addon/appModules/wordcraft.py`). For WordCraft's document it:
 - gives NVDA's own UI Automation browse mode, started with NVDA+Space as in Word. The document opens in focus mode;
-- makes Ctrl+Alt+arrows move between table cells in focus mode, as in Word.
+- makes Ctrl+Alt+arrows move between table cells in focus mode, as in Word;
+- announces a list once, with its number of items, on entering it, and again on leaving it, as for web pages. Without the add-on NVDA says "list" on every line of it: it takes a UI Automation list that isn't read-only for a list box, and corrects that only for applications it knows;
+- announces the cell Tab and Shift+Tab move to in a table (its row and column, then its text), as NVDA does in Word.
 
-Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode doesn't need the add-on.
+Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists and Tab in tables.
 
 ## What to expect
 
@@ -20,7 +22,7 @@ It works best with the WordCraft build of [storytold/wordcraft#4951](https://git
 - browse mode reads the whole document;
 - H and 1–6 find headings by their style, K links, L lists, T tables.
 
-With that build, on a test document, 121 of 150 scripted NVDA 2026.2 steps said the same as Word. With H, browse mode went through all 30 headings of a 48-page document.
+With that build, on a test document, 119 of 150 scripted NVDA 2026.2 steps said the same as Word. Most of the others are lists: Word hides them from NVDA, and this add-on announces them as web pages do. With H, browse mode went through all 30 headings of a 48-page document.
 
 With WordCraft's `main` as of October 2026, the document is described node by node for the pages on screen only. Browse mode then sees only those pages, and H finds no headings.
 

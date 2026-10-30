@@ -25,6 +25,8 @@ It works best with the WordCraft build of [storytold/wordcraft#4951](https://git
 
 With that build, on a test document, 119 of 150 scripted NVDA 2026.2 steps said the same as Word. Most of the others are lists: Word hides them from NVDA, and this add-on announces them as web pages do. With H, browse mode went through all 30 headings of a 48-page document.
 
+Braille, checked with NVDA's braille output on 40 cells but no physical display: the display follows lines, words and the selection as in Word, routing keys move the caret, and it stays still while nothing happens.
+
 With WordCraft's `main` as of October 2026, the document is described node by node for the pages on screen only. Browse mode then sees only those pages, and H finds no headings.
 
 ## Install
@@ -44,7 +46,7 @@ Tested with NVDA 2026.2 on Windows 11.
 ## Not covered
 
 - JAWS: it needs its own scripts for WordCraft.
-- Braille output hasn't been checked.
+- Braille on a real display: only NVDA's braille output has been checked so far.
 - Other platforms: NVDA is Windows only.
 
 ## Build

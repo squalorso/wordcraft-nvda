@@ -70,6 +70,15 @@ class WordCraftTextInfo(UIATextInfo):
 				field["_childcontrolcount"] = count
 		return field
 
+	def _get_NVDAObjectAtStart(self):
+		# A section's pane is structure around the text, not an object: the document stands for it.
+		# Otherwise, back in focus mode from browse mode, NVDA moves the review to the pane as the
+		# object at the caret, and a braille display shows "pane 1 of 1 lv 1" before the line.
+		obj = super()._get_NVDAObjectAtStart()
+		if isinstance(obj, UIA) and obj.UIAElement and _isSection(obj.UIAElement):
+			return self.obj
+		return obj
+
 	def _getFormatFieldAtRange(self, textRange, formatConfig, ignoreMixedValues=False):
 		formatField = super()._getFormatFieldAtRange(
 			textRange,

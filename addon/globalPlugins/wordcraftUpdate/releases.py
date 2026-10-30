@@ -18,11 +18,17 @@ MAX_PACKAGE_BYTES = 20 * 1024 * 1024
 
 
 def parseVersion(text):
-	"""(0, 2, 1) from "0.2.1" or "v0.2.1"; None if it isn't a version."""
-	match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.(\d+))?", (text or "").strip())
+	"""(0, 2, 1) from "0.2.1" or "v0.2.1", (0, 2, 1, 1) from "0.2.1.1"; None if it isn't a
+	version. Versions have at least three numbers ("0.2" is 0.2.0), and zeros after the third
+	don't count ("0.2.1.0" is 0.2.1), so the tuples compare as the versions do."""
+	match = re.fullmatch(r"v?(\d+(?:\.\d+)+)", (text or "").strip())
 	if not match:
 		return None
-	return tuple(int(part or 0) for part in match.groups())
+	parts = [int(part) for part in match.group(1).split(".")]
+	parts += [0] * (3 - len(parts))
+	while len(parts) > 3 and parts[-1] == 0:
+		parts.pop()
+	return tuple(parts)
 
 
 class Release:

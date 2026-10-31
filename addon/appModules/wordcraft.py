@@ -74,7 +74,10 @@ class WordCraftTextInfo(UIATextInfo):
 			except Exception:
 				count = 0
 			if isinstance(count, int) and count > 0:
-				field["_childcontrolcount"] = count
+				# As text, as virtual buffers give it: braille adds it to the role's text ("lst3"), and
+				# a number there fails the whole line, so the display kept the line before the list
+				# (squalorso/wordcraft-nvda#1). Speech reads it with int().
+				field["_childcontrolcount"] = str(count)
 		return field
 
 	def _getTextFromUIARange(self, textRange):

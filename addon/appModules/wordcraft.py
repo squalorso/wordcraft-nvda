@@ -17,9 +17,14 @@
 #   with UI Automation's page unit, and the section is the numbered pane WordCraft puts around
 #   each section's text;
 # - a picture reads as its alt text ("graphic, A red square"), as NVDA reads Word's.
+# - NVDA+End (NVDA+Shift+End in the laptop layout) reads the status bar, as in Word. NVDA looks
+#   for it at the window's bottom-left corner, which in WordCraft's window is the invisible
+#   resize border (off the screen when the window is maximized); here it is found by its role,
+#   as NVDA finds Notepad's and File Explorer's.
 
 from comtypes import COMError
 
+import api
 import appModuleHandler
 import controlTypes
 import speech
@@ -176,6 +181,24 @@ class WordCraftDocument(UIADocumentWithTableNavigation, UIA):
 
 
 class AppModule(appModuleHandler.AppModule):
+	def _get_statusBar(self):
+		"""The window's status bar, found by its role. A WordCraft without one (before it gave its
+		status bar that role) leaves NVDA to look as usual."""
+		clientObject = UIAHandler.handler.clientObject
+		condition = clientObject.createPropertyCondition(
+			UIAHandler.UIA_ControlTypePropertyId,
+			UIAHandler.UIA_StatusBarControlTypeId,
+		)
+		try:
+			window = clientObject.elementFromHandle(api.getForegroundObject().windowHandle)
+			element = clientObject.createTreeWalker(condition).getFirstChildElement(window)
+			if not element:
+				raise NotImplementedError
+			element = element.buildUpdatedCache(UIAHandler.handler.baseCacheRequest)
+		except COMError:
+			raise NotImplementedError
+		return UIA(UIAElement=element)
+
 	def chooseNVDAObjectOverlayClasses(self, obj, clsList):
 		# Only the document: WordCraft's dialogs and ribbon keep NVDA's usual behaviour.
 		if isinstance(obj, UIA) and obj.UIATextPattern and obj.role == controlTypes.Role.DOCUMENT:

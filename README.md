@@ -15,8 +15,9 @@ This add-on is one small app module (`addon/appModules/wordcraft.py`). For WordC
 - announces the cell Tab and Shift+Tab move to in a table (its row and column, then its text), as NVDA does in Word.
 - reads a picture as its alt text ("graphic, A red square"), as NVDA does in Word. In the text a picture is the object character (U+FFFC), which NVDA would otherwise read as the picture's content.
 - announces the page and the section when they change, with NVDA's Report pages on, as NVDA does in Word ("page 2, section 2"). NVDA gets them from Word through an extension of Word's own; the add-on counts the page with UI Automation's page unit and reads the section's number from the unnamed pane WordCraft puts around each section.
+- reads the status bar with NVDA+End (NVDA+Shift+End in the laptop layout), as in Word: the page, word count, language, view and zoom controls. NVDA looks for a status bar at the window's bottom-left corner, which in WordCraft's window is the invisible resize border (off the screen when the window is maximized); the add-on finds it by its role, as NVDA does for Notepad and File Explorer. It needs a WordCraft whose status bar has that role, [storytold/wordcraft#5130](https://github.com/storytold/wordcraft/pull/5130); with an older one NVDA looks as usual and finds none.
 
-Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists, Tab in tables, and pages and sections.
+Everything NVDA reads (headings, links, lists, tables, formatting, spelling errors) comes from what WordCraft exposes. Focus mode works without the add-on, apart from those lists, Tab in tables, pages and sections, and the status bar.
 
 ## What to expect
 
